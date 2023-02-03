@@ -1,4 +1,5 @@
 let canvas, ctx;
+let mousePos = { x: 0, y: 0 };
 
 // Bonne pratique : on attend que la page soit chargée
 // avant de faire quoi que ce soit
@@ -7,21 +8,27 @@ window.onload = init;
 let joueur = {
     x: 0,
     y: 0,
-    l:50,
-    h:50,       
-    vx:0,
-    vy:0,
+    l: 50,
+    h: 50,
+    vx: 0,
+    vy: 0,
     couleur: 'red',
     nbVies: 3,
-    draw: function(ctx) {
+    draw: function (ctx) {
         ctx.fillStyle = this.couleur;
         ctx.fillRect(this.x, this.y, this.l, this.h);
     },
-    move: function() {
+    move: function () {
         this.x += this.vx;
         this.y += this.vy;
     },
-    testeCollisionAvecBordsDuCanvas: function(largeurCanvas, hauteurCanvas) {
+    followMouse: function () {
+        this.x = mousePos.x - this.l / 2;
+        this.y = mousePos.y - this.h / 2;
+        //this.x = mousePos.x;
+        //this.y = mousePos.y;
+    },
+    testeCollisionAvecBordsDuCanvas: function (largeurCanvas, hauteurCanvas) {
         if (this.x + this.l > largeurCanvas) {
             // On positionne le joueur à la limite du canvas, au point de contact
             this.x = largeurCanvas - this.l;
@@ -37,7 +44,7 @@ let joueur = {
 
 function init(event) {
     console.log("Page chargée et les éléments HTML sont prêts à être manipulés");
-    canvas  = document.querySelector('#myCanvas');
+    canvas = document.querySelector('#myCanvas');
     //console.log(canvas);
     // pour dessiner, on utilise le contexte 2D
     ctx = canvas.getContext('2d');
@@ -45,12 +52,21 @@ function init(event) {
     // On va prendre en compte le clavier
     ajouteEcouteursClavier();
     ajouteEcouteurSouris();
- 
+
     requestAnimationFrame(animationLoop);
 
 }
 
 function ajouteEcouteurSouris() {
+        window.onmousemove = (event) => {
+        // on récupère la positon de la souris et on
+        // la stocke dans une variable globale mousePos
+        // adjust mouse position relative to the canvas
+        var rect = event.target.getBoundingClientRect()
+        mousePos.x = event.clientX - rect.left;
+        mousePos.y = event.clientY - rect.top;
+        //console.log(mousePos);
+    }
 }
 
 function ajouteEcouteursClavier() {
@@ -59,14 +75,14 @@ function ajouteEcouteursClavier() {
     // en fonction de la touche pressée
     window.onkeydown = (event) => {
         console.log(event.key);
-        switch(event.key) {
+        switch (event.key) {
             case 'ArrowLeft':
                 joueur.vx = -5;
                 break;
             case 'ArrowRight':
                 joueur.vx = 5;
                 break;
-                case 'ArrowUp':
+            case 'ArrowUp':
                 joueur.vy = -5;
                 break;
             case 'ArrowDown':
@@ -78,7 +94,7 @@ function ajouteEcouteursClavier() {
 
     window.onkeyup = (event) => {
         console.log(event.key);
-        switch(event.key) {
+        switch (event.key) {
             case 'ArrowLeft':
                 joueur.vx = 0;
                 break;
@@ -107,9 +123,10 @@ function animationLoop() {
     joueur.draw(ctx);
 
     // 3 - on déplace les objets
-    joueur.move();
+    //joueur.move();
+    joueur.followMouse()
     joueur.testeCollisionAvecBordsDuCanvas(canvas.width, canvas.height);
-    
+
     // 4 - On rappelle la fonction d'animation
     requestAnimationFrame(animationLoop);
 }
@@ -143,5 +160,5 @@ function exempleDessin() {
 
     // 3 - On déplace les objets, on regarde ce que fait le joueur avec la souris, etc.
     // On teste les collisions etc... bref, on change l'état des objets graphiques à dessiner
-    y+=0.1;
+    y += 0.1;
 }
