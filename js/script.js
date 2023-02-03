@@ -15,8 +15,31 @@ let joueur = {
     couleur: 'red',
     nbVies: 3,
     draw: function (ctx) {
+        // bonne pratique : si on change le contexte (position du repère, couleur, ombre, etc.)
+        // on sauvegarde le contexte avant de le modifier et
+        // on le restaure à la fin de la fonction
+        ctx.save();
+
+        ctx.translate(this.x, this.y);
+
         ctx.fillStyle = this.couleur;
-        ctx.fillRect(this.x, this.y, this.l, this.h);
+        ctx.fillRect(0, 0, this.l, this.h);
+        // on dessine les yeux
+        ctx.fillStyle = 'yellow';
+        ctx.fillRect(5, 5, 10, 10);
+        ctx.fillRect(32, 5, 10, 10);
+        // bouche
+        ctx.fillRect(15, 30, 20, 10);
+        this.dessineCorps(ctx);
+
+        ctx.restore();
+    },
+    dessineCorps: function (ctx) {
+        ctx.save();
+        ctx.translate(0, 50);
+        ctx.fillStyle = 'blue';
+        ctx.fillRect(12, 0, 25, 30);
+        ctx.restore();
     },
     move: function () {
         this.x += this.vx;
@@ -53,12 +76,14 @@ function init(event) {
     ajouteEcouteursClavier();
     ajouteEcouteurSouris();
 
+    creerDesObstaclesLevel1();
+
     requestAnimationFrame(animationLoop);
 
 }
 
 function ajouteEcouteurSouris() {
-        window.onmousemove = (event) => {
+    window.onmousemove = (event) => {
         // on récupère la positon de la souris et on
         // la stocke dans une variable globale mousePos
         // adjust mouse position relative to the canvas
@@ -121,11 +146,13 @@ function animationLoop() {
 
     // 2 - On dessine le nouveau contenu
     joueur.draw(ctx);
+    dessinerLesObstacles(ctx);
 
     // 3 - on déplace les objets
-    //joueur.move();
-    joueur.followMouse()
+    joueur.move();
+    //joueur.followMouse()
     joueur.testeCollisionAvecBordsDuCanvas(canvas.width, canvas.height);
+    detecteCollisionJoueurAvecObstacles()
 
     // 4 - On rappelle la fonction d'animation
     requestAnimationFrame(animationLoop);
@@ -161,4 +188,77 @@ function exempleDessin() {
     // 3 - On déplace les objets, on regarde ce que fait le joueur avec la souris, etc.
     // On teste les collisions etc... bref, on change l'état des objets graphiques à dessiner
     y += 0.1;
+}
+
+let tableauDesObstacles = [];
+
+function creerDesObstaclesLevel1() {
+    let obstacle1 = {
+        x: 250,
+        y: 0,
+        l: 30,
+        h: 300,
+        couleur: 'green',
+        draw: function (ctx) {
+            ctx.save();
+            ctx.fillStyle = this.couleur;
+            ctx.fillRect(this.x, this.y, this.l, this.h);
+            ctx.restore();
+        }
+    };
+    // On l'ajoute au tableau
+    tableauDesObstacles.push(obstacle1);
+
+    let obstacle2 = {
+        x: 450,
+        y: 0,
+        l: 30,
+        h: 300,
+        couleur: 'green',
+        draw: function (ctx) {
+            ctx.save();
+            ctx.fillStyle = this.couleur;
+            ctx.fillRect(this.x, this.y, this.l, this.h);
+            ctx.restore();
+        }
+    };
+    tableauDesObstacles.push(obstacle2);
+}
+
+function dessinerLesObstacles() {
+    tableauDesObstacles.forEach(o => {
+        o.draw(ctx);
+    });
+    /*
+    for(let i = 0; i < tableauDesObstacles.length; i++) {
+        tableauDesObstacles[i].draw(ctx);
+    }
+    */
+}
+
+
+function detecteCollisionJoueurAvecObstacles() {
+    let collisionExist = false;
+    // On va tester si le joueur est en collision avec un des obstacles
+    tableauDesObstacles.forEach(o => {
+        if (rectsOverlap(joueur.x, joueur.y, joueur.l, joueur.h, o.x, o.y, o.l, o.h)) {
+            collisionExist = true;
+        } 
+    });
+    if(collisionExist) {
+        joueur.couleur = 'red';
+    } else {
+        joueur.couleur = 'green';
+    }
+}
+
+// Collisions between aligned rectangles
+function rectsOverlap(x1, y1, w1, h1, x2, y2, w2, h2) {
+
+    if ((x1 > (x2 + w2)) || ((x1 + w1) < x2))
+        return false; // No horizontal axis projection overlap
+    if ((y1 > (y2 + h2)) || ((y1 + h1) < y2))
+        return false; // No vertical axis projection overlap
+    return true;    // If previous tests failed, then both axis projections
+    // overlap and the rectangles intersect
 }
