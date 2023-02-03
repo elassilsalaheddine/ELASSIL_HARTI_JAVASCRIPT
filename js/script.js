@@ -1,6 +1,8 @@
 import { joueur } from './joueur.js';
 import { tableauDesObstacles, creerDesObstaclesLevel1, dessinerLesObstacles } from './obstacles.js';
 import { ajouteEcouteurSouris, ajouteEcouteursClavier, inputState, mousePos } from './ecouteurs.js';
+import { rectsOverlap } from './collisions.js';
+
 
 let canvas, ctx;
 
@@ -39,20 +41,31 @@ function animationLoop() {
     dessinerLesObstacles(ctx);
 
     // 3 - on déplace les objets
-    if(inputState.left) joueur.vx = -5; else joueur.vx = 0;
-    if(inputState.right) joueur.vx = 5; else joueur.vx = 0;  
-    if(inputState.up) joueur.vy = -5; else joueur.vy = 0;
-    if(inputState.down) joueur.vy = 5; else joueur.vy = 0; 
+    testeEtatClavierPourJoueur();
 
     joueur.move();
     //joueur.followMouse()
     joueur.testeCollisionAvecBordsDuCanvas(canvas.width, canvas.height);
-    detecteCollisionJoueurAvecObstacles()
+    detecteCollisionJoueurAvecObstacles();
 
     // 4 - On rappelle la fonction d'animation
     requestAnimationFrame(animationLoop);
 }
 
+function testeEtatClavierPourJoueur() {
+    joueur.vx = 0;
+    if(inputState.left) {
+        joueur.vx = -5; 
+    } else {
+        if(inputState.right) joueur.vx = 5;
+    }
+    joueur.vy = 0;
+    if(inputState.up) {
+        joueur.vy = -5; 
+    } else {
+        if(inputState.down) joueur.vy = 5;
+    } 
+}
 
 
 function exempleDessin() {
@@ -102,13 +115,3 @@ function detecteCollisionJoueurAvecObstacles() {
     }
 }
 
-// Collisions between aligned rectangles
-function rectsOverlap(x1, y1, w1, h1, x2, y2, w2, h2) {
-
-    if ((x1 > (x2 + w2)) || ((x1 + w1) < x2))
-        return false; // No horizontal axis projection overlap
-    if ((y1 > (y2 + h2)) || ((y1 + h1) < y2))
-        return false; // No vertical axis projection overlap
-    return true;    // If previous tests failed, then both axis projections
-    // overlap and the rectangles intersect
-}
