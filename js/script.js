@@ -5,7 +5,7 @@ import { rectsOverlap } from './collisions.js';
 
 
 let canvas, ctx;
-
+let gameState = 'menuStart';
 // Bonne pratique : on attend que la page soit chargée
 // avant de faire quoi que ce soit
 window.onload = init;
@@ -35,36 +35,68 @@ function animationLoop() {
     // pour créer l'illusion d'un mouvement fluide
     // 1 - On efface le contenu du canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    switch (gameState) {
+        case 'menuStart':
+            afficheMenuStart(ctx);
+            break;
+        case 'gameOver':
+            afficheGameOver(ctx);
+            break;
+        case 'jeuEnCours':
+            // 2 - On dessine le nouveau contenu
+            joueur.draw(ctx);
+            dessinerLesObstacles(ctx);
 
-    // 2 - On dessine le nouveau contenu
-    joueur.draw(ctx);
-    dessinerLesObstacles(ctx);
+            // 3 - on déplace les objets
+            testeEtatClavierPourJoueur();
 
-    // 3 - on déplace les objets
-    testeEtatClavierPourJoueur();
-
-    joueur.move();
-    //joueur.followMouse()
-    joueur.testeCollisionAvecBordsDuCanvas(canvas.width, canvas.height);
-    detecteCollisionJoueurAvecObstacles();
+            joueur.move();
+            //joueur.followMouse()
+            joueur.testeCollisionAvecBordsDuCanvas(canvas.width, canvas.height);
+            detecteCollisionJoueurAvecObstacles();
+            break;
+    }
 
     // 4 - On rappelle la fonction d'animation
     requestAnimationFrame(animationLoop);
 }
 
+function afficheMenuStart(ctx) {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = "130px Arial";
+    ctx.fillText("Press space to start", 190, 100);
+    ctx.strokeText("Press space to start", 190, 100);
+    if(inputState.space) {
+        gameState = 'jeuEnCours';
+    }
+}   
+function afficheGameOver(ctx) {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = "130px Arial";
+    ctx.fillText("GAME OVER", 190, 100);
+    ctx.strokeText("GAME OVER", 190, 100);
+    if(inputState.space) {
+        gameState = 'menuStart';
+        joueur.x = 0;
+    }
+}  
 function testeEtatClavierPourJoueur() {
     joueur.vx = 0;
-    if(inputState.left) {
-        joueur.vx = -5; 
+    if (inputState.left) {
+        joueur.vx = -5;
     } else {
-        if(inputState.right) joueur.vx = 5;
+        if (inputState.right) joueur.vx = 5;
     }
     joueur.vy = 0;
-    if(inputState.up) {
-        joueur.vy = -5; 
+    if (inputState.up) {
+        joueur.vy = -5;
     } else {
-        if(inputState.down) joueur.vy = 5;
-    } 
+        if (inputState.down) joueur.vy = 5;
+    }
 }
 
 
@@ -106,10 +138,11 @@ function detecteCollisionJoueurAvecObstacles() {
     tableauDesObstacles.forEach(o => {
         if (rectsOverlap(joueur.x, joueur.y, joueur.l, joueur.h, o.x, o.y, o.l, o.h)) {
             collisionExist = true;
-        } 
+        }
     });
-    if(collisionExist) {
+    if (collisionExist) {
         joueur.couleur = 'red';
+        gameState = 'gameOver';
     } else {
         joueur.couleur = 'green';
     }

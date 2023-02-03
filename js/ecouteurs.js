@@ -32,6 +32,9 @@ function ajouteEcouteursClavier() {
             case 'ArrowDown':
                 inputState.down = true;
                 break;
+                case ' ':
+                    inputState.space = true;
+                    break;
         }
     }
 
@@ -50,6 +53,8 @@ function ajouteEcouteursClavier() {
             case 'ArrowDown':
                 inputState.down = false;
                 break;
+                case ' ':
+                    inputState.space = false;
         }
     }
 
