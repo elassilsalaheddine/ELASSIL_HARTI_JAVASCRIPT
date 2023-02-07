@@ -1,11 +1,16 @@
-import { joueur } from './joueur.js';
-import { tableauDesObstacles, creerDesObstaclesLevel1, dessinerLesObstacles } from './obstacles.js';
+import Joueur from './JoueurClasse.js';
+import Obstacle from './ObstacleClass.js';
+import ObstacleAnime from './ObstacleAnime.js';
+import ObstacleAnimeClignotant from './ObstacleAnimeClignotant.js';
 import { ajouteEcouteurSouris, ajouteEcouteursClavier, inputState, mousePos } from './ecouteurs.js';
 import { rectsOverlap } from './collisions.js';
 
 
 let canvas, ctx;
 let gameState = 'menuStart';
+let joueur;
+let tableauDesObjetsGraphiques = [];
+
 // Bonne pratique : on attend que la page soit chargée
 // avant de faire quoi que ce soit
 window.onload = init;
@@ -22,12 +27,33 @@ function init(event) {
     ajouteEcouteursClavier();
     ajouteEcouteurSouris();
 
+    // On va créer un joueur
+    joueur = new Joueur(100, 0, 50, 50, 'red', 3);
+    tableauDesObjetsGraphiques.push(joueur);
+
+    // et des obstacles
     creerDesObstaclesLevel1();
 
     requestAnimationFrame(animationLoop);
 
 }
 
+function creerDesObstaclesLevel1() {
+    tableauDesObjetsGraphiques.push(new Obstacle(250, 0, 30, 300, 'green'));
+    tableauDesObjetsGraphiques.push(new ObstacleAnime(450, 0, 30, 300, 'green', 1));
+    tableauDesObjetsGraphiques.push(new ObstacleAnimeClignotant(350, 0, 30, 300, 'red', 1));
+}
+
+function dessinerLesObjetsGraphiques(ctx) {
+    tableauDesObjetsGraphiques.forEach(o => {
+        o.draw(ctx);
+    });
+    /*
+    for(let i = 0; i < tableauDesObstacles.length; i++) {
+        tableauDesObstacles[i].draw(ctx);
+    }
+    */
+}   
 
 var y = 0;
 function animationLoop() {
@@ -44,8 +70,9 @@ function animationLoop() {
             break;
         case 'jeuEnCours':
             // 2 - On dessine le nouveau contenu
-            joueur.draw(ctx);
-            dessinerLesObstacles(ctx);
+            tableauDesObjetsGraphiques.forEach(o => {
+                o.draw(ctx);
+            });
 
             // 3 - on déplace les objets
             testeEtatClavierPourJoueur();
@@ -135,11 +162,14 @@ function exempleDessin() {
 function detecteCollisionJoueurAvecObstacles() {
     let collisionExist = false;
     // On va tester si le joueur est en collision avec un des obstacles
-    tableauDesObstacles.forEach(o => {
-        if (rectsOverlap(joueur.x, joueur.y, joueur.l, joueur.h, o.x, o.y, o.l, o.h)) {
-            collisionExist = true;
+    tableauDesObjetsGraphiques.forEach(o => {
+        if(o instanceof Obstacle) {
+            if (rectsOverlap(joueur.x, joueur.y, joueur.l, joueur.h, o.x, o.y, o.l, o.h)) {
+                collisionExist = true;
+            }
         }
     });
+
     if (collisionExist) {
         joueur.couleur = 'red';
         gameState = 'gameOver';

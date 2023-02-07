@@ -1,13 +1,17 @@
-let joueur = {
-    x: 100,
-    y: 0,
-    l: 50,
-    h: 50,
-    vx: 0,
-    vy: 0,
-    couleur: 'red',
-    nbVies: 3,
-    draw: function (ctx) {
+import ObjetGraphique from "./ObjetGraphique.js";
+
+export default class Joueur extends ObjetGraphique{
+    constructor(x, y, l, h, couleur, nbVies) {
+        // on appelle le constructeur de la classe mère
+        // pour initialiser les propriétés héritées
+        super(x, y, l, h, couleur);
+        // on initialise les propriétés propres à la classe Joueur
+        this.nbVies = nbVies;
+        this.vx = 0;
+        this.vy = 0;
+    }
+    // on redefinit la méthode héritée draw(ctx)
+    draw(ctx) {
         // bonne pratique : si on change le contexte (position du repère, couleur, ombre, etc.)
         // on sauvegarde le contexte avant de le modifier et
         // on le restaure à la fin de la fonction
@@ -26,25 +30,25 @@ let joueur = {
         this.dessineCorps(ctx);
 
         ctx.restore();
-    },
-    dessineCorps: function(ctx) {
+    }
+    dessineCorps(ctx) {
         ctx.save();
         ctx.translate(0, 50);
         ctx.fillStyle = 'blue';
         ctx.fillRect(12, 0, 25, 30);
         ctx.restore();
-    },
-    move: function () {
+    }
+    move() {
         this.x += this.vx;
         this.y += this.vy;
-    },
-    followMouse: function () {
+    }
+
+    followMouse(mousePos) {
         this.x = mousePos.x - this.l / 2;
         this.y = mousePos.y - this.h / 2;
-        //this.x = mousePos.x;
-        //this.y = mousePos.y;
-    },
-    testeCollisionAvecBordsDuCanvas: function (largeurCanvas, hauteurCanvas) {
+    }
+
+    testeCollisionAvecBordsDuCanvas(largeurCanvas, hauteurCanvas) {
         if (this.x + this.l > largeurCanvas) {
             // On positionne le joueur à la limite du canvas, au point de contact
             this.x = largeurCanvas - this.l;
@@ -57,5 +61,3 @@ let joueur = {
         }
     }
 }
-
-export { joueur }
