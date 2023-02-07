@@ -12,6 +12,7 @@ export default class Sortie extends ObjetGraphique {
         ctx.fillStyle = this.couleur;
         // voir mooc html5 coding essentials and best practices
         // module 3 sur graphics
+        ctx.beginPath();
         ctx.arc(0, 0, this.r, 0, 2*Math.PI);
         ctx.fill();
         ctx.strokeStyle="black";

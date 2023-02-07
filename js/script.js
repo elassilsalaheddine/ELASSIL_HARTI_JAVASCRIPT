@@ -8,16 +8,19 @@ import { circRectsOverlap, rectsOverlap } from './collisions.js';
 import { loadAssets } from './assets.js';
 import Sortie from './Sortie.js';
 
+import { tabNiveaux } from './levels.js';
+
 
 let canvas, ctx;
 let gameState = 'menuStart';
 let joueur, sortie;
-let niveau = 1;
+let niveau = 0;
 let tableauDesObjetsGraphiques = [];
 let assets;
 
 var assetsToLoadURLs = {
     joueur: { url: '../assets/images/mario.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
+    bgn1: { url: '../assets/images/bgn1.jpg' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
     backgroundImage: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/background.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
     logo1: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/SkywardWithoutBalls.png" },
     logo2: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/BoundsWithoutBalls.png" },
@@ -60,16 +63,31 @@ function startGame(assetsLoaded) {
    ajouteEcouteursClavier();
    ajouteEcouteurSouris();
 
-    // On va créer un joueur
-    joueur = new Joueur(100, 0, 50, 50, assets.joueur, 3);
-    tableauDesObjetsGraphiques.push(joueur);
-    // On crée la sortie
-    sortie = new Sortie(700, 400, 30, 'yellow');
-    tableauDesObjetsGraphiques.push(sortie);
-    // et des obstacles
-    creerDesObstaclesLevel1();
+    demarreNiveau(niveau);
 
     requestAnimationFrame(animationLoop);
+}
+
+function demarreNiveau(niveau) {
+    if(niveau > tabNiveaux.length-1)  {
+        console.log("PLUS DE NIVEAUX !!!!!");
+        niveau--;
+        return;
+    } 
+    // sinon on passe au niveau suivant
+
+    // On initialise les objets graphiques qu'on va utiliser pour le niveau
+    // courant avec les objets graphiques dans tabNiveaux[niveau]   
+    tableauDesObjetsGraphiques = [...tabNiveaux[niveau].objetsGraphiques];  
+    // On crée le joueur   
+     joueur = new Joueur(100, 0, 50, 50, assets.joueur, 3);
+     sortie = tabNiveaux[niveau].sortie;
+     // et on l'ajoute au tableau des objets graphiques
+     tableauDesObjetsGraphiques.push(joueur);
+
+     // on démarre la musique du niveau
+     let nomMusique = tabNiveaux[niveau].musique; 
+     //assets[nomMusique].play();
 }
 
 function creerDesObstaclesLevel1() {
@@ -92,11 +110,13 @@ function dessinerLesObjetsGraphiques(ctx) {
 }
 
 var y = 0;
+let ximg = 0;
 function animationLoop() {
     // On va exécuter cette fonction 60 fois par seconde
     // pour créer l'illusion d'un mouvement fluide
     // 1 - On efface le contenu du canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     switch (gameState) {
         case 'menuStart':
             afficheMenuStart(ctx);
@@ -108,6 +128,10 @@ function animationLoop() {
             afficheEcranDebutNiveau(ctx);
                 break;
         case 'jeuEnCours':
+            //ximg++;
+            //ximg = ximg % canvas.width;
+            //ctx.drawImage(assets.bgn1, 0/*ximg++*/, 0, canvas.width, canvas.height);
+
             // 2 - On dessine le nouveau contenu
             tableauDesObjetsGraphiques.forEach(o => {
                 o.draw(ctx);
@@ -166,18 +190,26 @@ function afficheGameOver(ctx) {
     ctx.restore();
 }
 function testeEtatClavierPourJoueur() {
-    joueur.vx = 0;
-    if (inputState.left) {
-        joueur.vx = -5;
+    if(inputState.space) {
+        // on saute
+        joueur.saute();
     } else {
-        if (inputState.right) joueur.vx = 5;
+        joueur.vx = 0;
+        if (inputState.left) {
+            joueur.vx = -5;
+        } else {
+            if (inputState.right) joueur.vx = 5;
+        }
+        joueur.vy = 0;
+        if (inputState.up) {
+            joueur.vy = -5;
+        } else {
+            if (inputState.down) joueur.vy = 5;
+        }
     }
-    joueur.vy = 0;
-    if (inputState.up) {
-        joueur.vy = -5;
-    } else {
-        if (inputState.down) joueur.vy = 5;
-    }
+    
+
+    
 }
 
 
@@ -240,16 +272,21 @@ function detecteCollisionJoueurAvecSortie() {
     if (circRectsOverlap(joueur.x, joueur.y, joueur.l, joueur.h, sortie.x, sortie.y, sortie.r)) {
         joueur.x = 10;
         joueur.y = 10;
-        gameState = 'ecranDebutNiveau';
-        niveauSuivant(niveau++);
+        //gameState = 'ecranDebutNiveau';
+        niveauSuivant();
         sortie.couleur = 'lightgreen';
-        assets.backinblack.stop();
         assets.victory.play();
     }
 }
 
-function niveauSuivant(niveau) {
+function niveauSuivant() {
     // Passe au niveau suivant....
     // todo.....
     console.log("Niveau suivant !");
+    // on arre^te la musique du niveau courant
+    let nomMusique = tabNiveaux[niveau].musique; 
+    assets[nomMusique].stop();    
+    // et on passe au niveau suivant
+    niveau++;
+    demarreNiveau(niveau);
 }

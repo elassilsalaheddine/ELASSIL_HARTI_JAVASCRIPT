@@ -1,7 +1,7 @@
 import ObjetGraphique from "./ObjetGraphique.js";
 
 export default class Joueur extends ObjetGraphique {
- 
+
 
     constructor(x, y, l, h, sprite, nbVies) {
         // on appelle le constructeur de la classe mère
@@ -12,9 +12,12 @@ export default class Joueur extends ObjetGraphique {
         this.nbVies = nbVies;
         this.vx = 0;
         this.vy = 0;
-        
+        this.vysaut = 5;
+        this.ay = 0.1;
+        this.etat = "deplacementNormal";
+
         //this.video = document.querySelector('#sourcevid');
-        
+
     }
     // on redefinit la méthode héritée draw(ctx)
     draw(ctx) {
@@ -50,8 +53,37 @@ export default class Joueur extends ObjetGraphique {
         ctx.restore();
     }
     move() {
-        this.x += this.vx;
-        this.y += this.vy;
+        switch (this.etat) {
+            case "sautEnCours":
+                this.hauteurSaut += this.vysaut;
+                this.y -= this.vysaut;
+                this.vysaut -= this.ay;
+
+                if(this.y > this.yAvantSaut) {
+                    this.etat = 'deplacementNormal';
+                    // Fin du saut on remet les valeurs initiales
+                    this.y = this.yAvantSaut;
+                    this.vysaut = 5;
+                    this.ay = 0.1;                }
+
+                break;
+            
+            case "deplacementNormal":
+                this.x += this.vx;
+                this.y += this.vy;
+                break
+        }
+    }
+
+    saute() {
+        if (this.etat !== 'sautEnCours') {
+            this.yAvantSaut = this.y;
+            this.hauteurSaut = 0;
+            this.y = this.yAvantSaut;
+            this.vysaut = 5;
+            this.ay = 0.1; 
+            this.etat = 'sautEnCours';
+        }
     }
 
     followMouse(mousePos) {
