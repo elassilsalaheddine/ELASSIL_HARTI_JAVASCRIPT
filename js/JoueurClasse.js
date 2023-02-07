@@ -1,27 +1,24 @@
 import ObjetGraphique from "./ObjetGraphique.js";
 
-export default class Joueur extends ObjetGraphique{
-    url = "./assets/images/mario.png";
+export default class Joueur extends ObjetGraphique {
+ 
 
-    constructor(x, y, l, h, couleur, nbVies) {
+    constructor(x, y, l, h, sprite, nbVies) {
         // on appelle le constructeur de la classe mère
         // pour initialiser les propriétés héritées
-        super(x, y, l, h, couleur);
+        super(x, y, l, h, 'black');
+        this.sprite = sprite;
         // on initialise les propriétés propres à la classe Joueur
         this.nbVies = nbVies;
         this.vx = 0;
         this.vy = 0;
-        this.sprite = new Image();
-        this.sprite.onload = () => {
-            this.ready = true;
-        }
-        this.sprite.src = this.url;
-        this.video = document.querySelector('#sourcevid');
+        
+        //this.video = document.querySelector('#sourcevid');
         
     }
     // on redefinit la méthode héritée draw(ctx)
     draw(ctx) {
-        if(!this.ready) return;
+        //if(!this.ready) return;
 
         // bonne pratique : si on change le contexte (position du repère, couleur, ombre, etc.)
         // on sauvegarde le contexte avant de le modifier et

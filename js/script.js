@@ -5,6 +5,7 @@ import ObstacleAnimeClignotant from './ObstacleAnimeClignotant.js';
 import ObstacleTexture from './ObstacleTexture.js';
 import { ajouteEcouteurSouris, ajouteEcouteursClavier, inputState, mousePos } from './ecouteurs.js';
 import { circRectsOverlap, rectsOverlap } from './collisions.js';
+import { loadAssets } from './assets.js';
 import Sortie from './Sortie.js';
 
 
@@ -13,6 +14,23 @@ let gameState = 'menuStart';
 let joueur, sortie;
 let niveau = 1;
 let tableauDesObjetsGraphiques = [];
+let assets;
+
+var assetsToLoadURLs = {
+    joueur: { url: '../assets/images/mario.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
+    backgroundImage: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/background.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
+    logo1: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/SkywardWithoutBalls.png" },
+    logo2: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/BoundsWithoutBalls.png" },
+    bell: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/bells.png" },
+    spriteSheetBunny: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/bunnySpriteSheet.png' },
+    plop: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/plop.mp3', buffer: false, loop: false, volume: 1.0 },
+    victory: { url: '../assets/audio/victory.wav', buffer: false, loop: false, volume: 1.0 },
+    humbug: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/humbug.mp3', buffer: true, loop: true, volume: 0.5 },
+    concertino: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/christmas_concertino.mp3', buffer: true, loop: true, volume: 1.0 },
+    xmas: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/xmas.mp3', buffer: true, loop: true, volume: 0.6 },
+    backinblack: { url: '../assets/audio/backinblack.m4a', buffer: true, loop: true, volume: 0.5 }
+
+};
 
 // Bonne pratique : on attend que la page soit chargée
 // avant de faire quoi que ce soit
@@ -26,20 +44,24 @@ function init(event) {
     ctx = canvas.getContext('2d');
 
     // chargement des assets (musique,  images, sons)
-    //loadAssets(startGame);
+    loadAssets(assetsToLoadURLs, startGame);
 
-    startGame();
+    //startGame();
 }
 
-function startGame() {
+function startGame(assetsLoaded) {
+    assets = assetsLoaded;
+
     // appelée quand tous les assets sont chargés
+    console.log("StartGame : tous les assets sont chargés");
+    //assets.backinblack.play();
 
    // On va prendre en compte le clavier
    ajouteEcouteursClavier();
    ajouteEcouteurSouris();
 
     // On va créer un joueur
-    joueur = new Joueur(100, 0, 50, 50, 'red', 3);
+    joueur = new Joueur(100, 0, 50, 50, assets.joueur, 3);
     tableauDesObjetsGraphiques.push(joueur);
     // On crée la sortie
     sortie = new Sortie(700, 400, 30, 'yellow');
@@ -198,13 +220,15 @@ function detecteCollisionJoueurAvecObstacles() {
         if (o instanceof Obstacle) {
             if (rectsOverlap(joueur.x, joueur.y, joueur.l, joueur.h, o.x, o.y, o.l, o.h)) {
                 collisionExist = true;
+                assets.plop.play();
             }
         }
     });
 
     if (collisionExist) {
         joueur.couleur = 'red';
-        gameState = 'gameOver';
+        //gameState = 'gameOver';
+        joueur.x -= 10;
     } else {
         joueur.couleur = 'green';
     }
@@ -219,6 +243,8 @@ function detecteCollisionJoueurAvecSortie() {
         gameState = 'ecranDebutNiveau';
         niveauSuivant(niveau++);
         sortie.couleur = 'lightgreen';
+        assets.backinblack.stop();
+        assets.victory.play();
     }
 }
 
