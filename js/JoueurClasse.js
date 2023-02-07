@@ -1,6 +1,8 @@
 import ObjetGraphique from "./ObjetGraphique.js";
 
 export default class Joueur extends ObjetGraphique{
+    url = "./assets/images/mario.png";
+
     constructor(x, y, l, h, couleur, nbVies) {
         // on appelle le constructeur de la classe mère
         // pour initialiser les propriétés héritées
@@ -9,16 +11,27 @@ export default class Joueur extends ObjetGraphique{
         this.nbVies = nbVies;
         this.vx = 0;
         this.vy = 0;
+        this.sprite = new Image();
+        this.sprite.onload = () => {
+            this.ready = true;
+        }
+        this.sprite.src = this.url;
+        this.video = document.querySelector('#sourcevid');
+        
     }
     // on redefinit la méthode héritée draw(ctx)
     draw(ctx) {
+        if(!this.ready) return;
+
         // bonne pratique : si on change le contexte (position du repère, couleur, ombre, etc.)
         // on sauvegarde le contexte avant de le modifier et
         // on le restaure à la fin de la fonction
         ctx.save();
 
         ctx.translate(this.x, this.y);
-
+        ctx.drawImage(this.sprite, 0, 0);
+        //ctx.drawImage(this.video, 0, 0, this.l, this.h);
+        /*
         ctx.fillStyle = this.couleur;
         ctx.fillRect(0, 0, this.l, this.h);
         // on dessine les yeux
@@ -28,6 +41,7 @@ export default class Joueur extends ObjetGraphique{
         // bouche
         ctx.fillRect(15, 30, 20, 10);
         this.dessineCorps(ctx);
+        */
 
         ctx.restore();
     }
