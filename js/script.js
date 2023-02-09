@@ -13,7 +13,7 @@ import { tabNiveaux } from './levels.js';
 
 let canvas, ctx;
 let gameState = 'menuStart';
-let joueur, sortie;
+let joueur, sortie, vitesseJoueur=5;
 let niveau = 0;
 let tableauDesObjetsGraphiques = [];
 let assets;
@@ -46,6 +46,14 @@ function init(event) {
     // pour dessiner, on utilise le contexte 2D
     ctx = canvas.getContext('2d');
 
+    // On définit les écouteurs sur les input HTML
+    let champVitesse = document.querySelector("#inputVitesse");
+    champVitesse.oninput = (event) => {
+        setVitesseJoueur(champVitesse.value);
+        // et on met à jour le span
+        document.querySelector("#vitesseSpan").innerHTML = champVitesse.value;
+    }
+
     // chargement des assets (musique,  images, sons)
     loadAssets(assetsToLoadURLs, startGame);
 
@@ -66,6 +74,10 @@ function startGame(assetsLoaded) {
     demarreNiveau(niveau);
 
     requestAnimationFrame(animationLoop);
+}
+
+function setVitesseJoueur(vitesse) {
+    vitesseJoueur = vitesse;
 }
 
 function demarreNiveau(niveau) {
@@ -196,15 +208,15 @@ function testeEtatClavierPourJoueur() {
     } else {
         joueur.vx = 0;
         if (inputState.left) {
-            joueur.vx = -5;
+            joueur.vx = -vitesseJoueur;
         } else {
-            if (inputState.right) joueur.vx = 5;
+            if (inputState.right) joueur.vx = vitesseJoueur;
         }
         joueur.vy = 0;
         if (inputState.up) {
-            joueur.vy = -5;
+            joueur.vy = -vitesseJoueur;
         } else {
-            if (inputState.down) joueur.vy = 5;
+            if (inputState.down) joueur.vy = vitesseJoueur;
         }
     }
     
