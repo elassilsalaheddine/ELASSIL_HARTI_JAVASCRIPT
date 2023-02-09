@@ -16,7 +16,7 @@ let level1 = {
     sortie : sortieLevel1,
     titre : "Niveau 1",
     description: "Souffre petit padawan !",
-    background: "bng1",
+    background: "pattern1",
     musique: "xmas"
 }
 tabNiveaux.push(level1);
@@ -31,7 +31,7 @@ let level2 = {
     temps: 30,
     titre : "Niveau 2",
     description: "Ne te laisse pas faire !",
-    background: "mario",
+    background: "bgn2",
     musique: "humbug"
 }
 tabNiveaux.push(level2);

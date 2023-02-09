@@ -6,26 +6,33 @@ import ObstacleTexture from './ObstacleTexture.js';
 import { ajouteEcouteurSouris, ajouteEcouteursClavier, inputState, mousePos } from './ecouteurs.js';
 import { circRectsOverlap, rectsOverlap } from './collisions.js';
 import { loadAssets } from './assets.js';
+import SpriteCasseBrique from './SpriteCasseBrique.js';
 import Sortie from './Sortie.js';
 
 import { tabNiveaux } from './levels.js';
+import Brick from './Brick.js';
 
 
 let canvas, ctx;
 let gameState = 'menuStart';
-let joueur, sortie, vitesseJoueur=5;
+let joueur, sortie, vitesseJoueur = 5;
 let niveau = 0;
 let tableauDesObjetsGraphiques = [];
 let assets;
+let spritesheetCB;
+let briqueBleue1;
 
 var assetsToLoadURLs = {
+    pattern1: { url: '../assets/images/pattern1.jpg', pattern: true },
+    spritesheetCasseBrique: { url: "../assets/images/spriteSheetCasseBricks.png" },
     joueur: { url: '../assets/images/mario.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
     bgn1: { url: '../assets/images/bgn1.jpg' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
-    backgroundImage: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/background.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
-    logo1: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/SkywardWithoutBalls.png" },
-    logo2: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/BoundsWithoutBalls.png" },
-    bell: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/bells.png" },
-    spriteSheetBunny: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/bunnySpriteSheet.png' },
+    bgn2: { url: '../assets/images/bgn2.jpg' },
+    //backgroundImage: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/background.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
+    //logo1: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/SkywardWithoutBalls.png" },
+    //logo2: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/BoundsWithoutBalls.png" },
+    //bell: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/bells.png" },
+    //spriteSheetBunny: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/bunnySpriteSheet.png' },
     plop: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/plop.mp3', buffer: false, loop: false, volume: 1.0 },
     victory: { url: '../assets/audio/victory.wav', buffer: false, loop: false, volume: 1.0 },
     humbug: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/humbug.mp3', buffer: true, loop: true, volume: 0.5 },
@@ -63,13 +70,18 @@ function init(event) {
 function startGame(assetsLoaded) {
     assets = assetsLoaded;
 
+    spritesheetCB = new SpriteCasseBrique(assets.spritesheetCasseBrique);
+    // spritesheetCB.draw(ctx, "briqueBleue", 100, 100);
+    briqueBleue1 = new Brick(100, 100, "briqueBleue", spritesheetCB, 10);
+    briqueBleue1.cassee = true;
+
     // appelée quand tous les assets sont chargés
     console.log("StartGame : tous les assets sont chargés");
     //assets.backinblack.play();
 
-   // On va prendre en compte le clavier
-   ajouteEcouteursClavier();
-   ajouteEcouteurSouris();
+    // On va prendre en compte le clavier
+    ajouteEcouteursClavier();
+    ajouteEcouteurSouris();
 
     demarreNiveau(niveau);
 
@@ -81,32 +93,32 @@ function setVitesseJoueur(vitesse) {
 }
 
 function demarreNiveau(niveau) {
-    if(niveau > tabNiveaux.length-1)  {
+    if (niveau > tabNiveaux.length - 1) {
         console.log("PLUS DE NIVEAUX !!!!!");
         niveau--;
         return;
-    } 
+    }
     // sinon on passe au niveau suivant
 
     // On initialise les objets graphiques qu'on va utiliser pour le niveau
     // courant avec les objets graphiques dans tabNiveaux[niveau]   
-    tableauDesObjetsGraphiques = [...tabNiveaux[niveau].objetsGraphiques];  
+    tableauDesObjetsGraphiques = [...tabNiveaux[niveau].objetsGraphiques];
     // On crée le joueur   
-     joueur = new Joueur(100, 0, 50, 50, assets.joueur, 3);
-     sortie = tabNiveaux[niveau].sortie;
-     // et on l'ajoute au tableau des objets graphiques
-     tableauDesObjetsGraphiques.push(joueur);
+    joueur = new Joueur(100, 0, 50, 50, assets.joueur, 3);
+    sortie = tabNiveaux[niveau].sortie;
+    // et on l'ajoute au tableau des objets graphiques
+    tableauDesObjetsGraphiques.push(joueur);
 
-     // on démarre la musique du niveau
-     let nomMusique = tabNiveaux[niveau].musique; 
-     //assets[nomMusique].play();
+    // on démarre la musique du niveau
+    let nomMusique = tabNiveaux[niveau].musique;
+    //assets[nomMusique].play();
 }
 
 function creerDesObstaclesLevel1() {
     tableauDesObjetsGraphiques.push(new Obstacle(250, 0, 30, 300, 'green'));
     tableauDesObjetsGraphiques.push(new ObstacleAnime(450, 0, 30, 300, 'green', 1));
     tableauDesObjetsGraphiques.push(new ObstacleAnimeClignotant(350, 0, 30, 300, 'red', 1));
-    let url ='https://img.freepik.com/free-vector/seamless-japanese-inspired-geometric-pattern_53876-80353.jpg';
+    let url = 'https://img.freepik.com/free-vector/seamless-japanese-inspired-geometric-pattern_53876-80353.jpg';
     tableauDesObjetsGraphiques.push(new ObstacleTexture(550, 0, 30, 300, url));
 }
 
@@ -136,18 +148,41 @@ function animationLoop() {
         case 'gameOver':
             afficheGameOver(ctx);
             break;
-            case 'ecranDebutNiveau':
+        case 'ecranDebutNiveau':
             afficheEcranDebutNiveau(ctx);
-                break;
+            break;
         case 'jeuEnCours':
             //ximg++;
             //ximg = ximg % canvas.width;
             //ctx.drawImage(assets.bgn1, 0/*ximg++*/, 0, canvas.width, canvas.height);
-
             // 2 - On dessine le nouveau contenu
+
+            // on dessine le background du niveau courant
+            /*
+            let backgroundImageName = tabNiveaux[niveau].background;
+            let imgBackGround = assets[backgroundImageName];
+            ctx.drawImage(imgBackGround, 0, 0, canvas.width, canvas.height);
+            */
+            // Si l'image est une pattern, on la dessine en tant que pattern
+
+            let backgroundImageName = tabNiveaux[niveau].background;
+            let imgBackGround = assets[backgroundImageName];
+            if (imgBackGround.pattern) {
+                let pattern = ctx.createPattern(imgBackGround, 'repeat');
+                ctx.save();
+                ctx.fillStyle = pattern;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            } else {
+                ctx.drawImage(imgBackGround, 0, 0, canvas.width, canvas.height);
+            }
+
+
             tableauDesObjetsGraphiques.forEach(o => {
                 o.draw(ctx);
             });
+
+            //briqueBleue1.draw(ctx);
 
             // 3 - on déplace les objets
             testeEtatClavierPourJoueur();
@@ -170,7 +205,7 @@ function afficheEcranDebutNiveau(ctx) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'white';
     ctx.font = "40px Arial";
-    ctx.fillText("Bienvenue au niveau "+niveau, 190, 100);
+    ctx.fillText("Bienvenue au niveau " + niveau, 190, 100);
     ctx.restore();
 }
 
@@ -202,7 +237,7 @@ function afficheGameOver(ctx) {
     ctx.restore();
 }
 function testeEtatClavierPourJoueur() {
-    if(inputState.space) {
+    if (inputState.space) {
         // on saute
         joueur.saute();
     } else {
@@ -219,9 +254,9 @@ function testeEtatClavierPourJoueur() {
             if (inputState.down) joueur.vy = vitesseJoueur;
         }
     }
-    
 
-    
+
+
 }
 
 
@@ -296,8 +331,8 @@ function niveauSuivant() {
     // todo.....
     console.log("Niveau suivant !");
     // on arre^te la musique du niveau courant
-    let nomMusique = tabNiveaux[niveau].musique; 
-    assets[nomMusique].stop();    
+    let nomMusique = tabNiveaux[niveau].musique;
+    assets[nomMusique].stop();
     // et on passe au niveau suivant
     niveau++;
     demarreNiveau(niveau);
