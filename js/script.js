@@ -22,6 +22,12 @@ let gameState = 'menuStart';
 let joueur, sortie, vitesseJoueur = 5;
 let niveau = 0;
 let score = 0;
+let hiScores = [
+    { nom: "Toto", score: 1000 },
+    { nom: "Titi", score: 900 },
+    { nom: "Tata", score: 800 },
+    { nom: "Tutu", score: 700 },
+];
 let tableauDesObjetsGraphiques = [];
 let spritesheetCB;
 let briqueBleue1;
@@ -239,7 +245,25 @@ function afficheGameOver(ctx) {
         joueur.x = 0;
     }
     ctx.restore();
+
+    afficheHiScores();
 }
+
+function afficheHiScores() {
+    // Regarder le contenu des hi scores (parcourir le tableau) et 
+    //voir si le score courant est plus grand que l'un des scores du tableau
+    // Si oui, on demande le nom du joueur et on l'ajoute au tableau
+    // le tableau est trié par ordre décroissant
+    // le tableau contient des objets {nom: 'toto', score: 1000}
+    // Pour tester l'affichage commencez avec un tableau codé en dur, et affichez-le
+    // dans le canvas
+    // ensuite essayez de coder l'insertion triée... il existe un moyen de faire
+    // un tri avec la méthode sort() de javascript sur les tableaux, mais il faut
+    // lui passer une fonction de comparaison qui retourne -1, 0 ou 1 car on
+    // ne peut pas comparer directement des objets, uniquement des nombres ou des caractères
+    // voir le mooc partie sur les tableaux, ou chercer "trier tableau javascript"
+}
+
 function testeEtatClavierPourJoueur() {
     if (inputState.space) {
         // on saute
