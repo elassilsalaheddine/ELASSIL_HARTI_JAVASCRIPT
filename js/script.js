@@ -12,10 +12,12 @@ import Coin from './Coin.js';
 
 import { creerLesNiveaux, tabNiveaux } from './levels.js';
 import Brick from './Brick.js';
+import Timer from './Timer.js';
 
 
 let canvas, ctx;
 let assets;
+let timer;
 let gameState = 'menuStart';
 let joueur, sortie, vitesseJoueur = 5;
 let niveau = 0;
@@ -54,6 +56,8 @@ function init(event) {
 function startGame(assetsLoaded) {
     assets = assetsLoaded;
 
+    timer = new Timer("decompte");
+
     // On crée les niveaux
     creerLesNiveaux(assets);
 
@@ -86,7 +90,9 @@ function demarreNiveau(niveau) {
         return;
     }
     // sinon on passe au niveau suivant
-
+    timer.stop();
+    timer.setTime(tabNiveaux[niveau].temps);
+    timer.start();
     // On initialise les objets graphiques qu'on va utiliser pour le niveau
     // courant avec les objets graphiques dans tabNiveaux[niveau]   
     tableauDesObjetsGraphiques = [...tabNiveaux[niveau].objetsGraphiques];
@@ -169,6 +175,7 @@ function animationLoop() {
                 o.draw(ctx);
             });
             afficheScore(ctx);
+            timer.draw(ctx, 150, 30);
 
             //briqueBleue1.draw(ctx);
 
