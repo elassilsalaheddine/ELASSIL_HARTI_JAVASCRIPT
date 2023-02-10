@@ -8,39 +8,23 @@ import { circRectsOverlap, rectsOverlap } from './collisions.js';
 import { loadAssets } from './assets.js';
 import SpriteCasseBrique from './SpriteCasseBrique.js';
 import Sortie from './Sortie.js';
+import Coin from './Coin.js';
 
-import { tabNiveaux } from './levels.js';
+import { creerLesNiveaux, tabNiveaux } from './levels.js';
 import Brick from './Brick.js';
 
 
 let canvas, ctx;
+let assets;
 let gameState = 'menuStart';
 let joueur, sortie, vitesseJoueur = 5;
 let niveau = 0;
+let score = 0;
 let tableauDesObjetsGraphiques = [];
-let assets;
 let spritesheetCB;
 let briqueBleue1;
 
-var assetsToLoadURLs = {
-    pattern1: { url: '../assets/images/pattern1.jpg', pattern: true },
-    spritesheetCasseBrique: { url: "../assets/images/spriteSheetCasseBricks.png" },
-    joueur: { url: '../assets/images/mario.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
-    bgn1: { url: '../assets/images/bgn1.jpg' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
-    bgn2: { url: '../assets/images/bgn2.jpg' },
-    //backgroundImage: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/background.png' }, // http://www.clipartlord.com/category/weather-clip-art/winter-clip-art/
-    //logo1: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/SkywardWithoutBalls.png" },
-    //logo2: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/BoundsWithoutBalls.png" },
-    //bell: { url: "https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/bells.png" },
-    //spriteSheetBunny: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/images/bunnySpriteSheet.png' },
-    plop: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/plop.mp3', buffer: false, loop: false, volume: 1.0 },
-    victory: { url: '../assets/audio/victory.wav', buffer: false, loop: false, volume: 1.0 },
-    humbug: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/humbug.mp3', buffer: true, loop: true, volume: 0.5 },
-    concertino: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/christmas_concertino.mp3', buffer: true, loop: true, volume: 1.0 },
-    xmas: { url: 'https://mainline.i3s.unice.fr/mooc/SkywardBound/assets/sounds/xmas.mp3', buffer: true, loop: true, volume: 0.6 },
-    backinblack: { url: '../assets/audio/backinblack.m4a', buffer: true, loop: true, volume: 0.5 }
 
-};
 
 // Bonne pratique : on attend que la page soit chargée
 // avant de faire quoi que ce soit
@@ -62,13 +46,16 @@ function init(event) {
     }
 
     // chargement des assets (musique,  images, sons)
-    loadAssets(assetsToLoadURLs, startGame);
+    loadAssets(startGame);
 
     //startGame();
 }
 
 function startGame(assetsLoaded) {
     assets = assetsLoaded;
+
+    // On crée les niveaux
+    creerLesNiveaux(assets);
 
     spritesheetCB = new SpriteCasseBrique(assets.spritesheetCasseBrique);
     // spritesheetCB.draw(ctx, "briqueBleue", 100, 100);
@@ -181,6 +168,7 @@ function animationLoop() {
             tableauDesObjetsGraphiques.forEach(o => {
                 o.draw(ctx);
             });
+            afficheScore(ctx);
 
             //briqueBleue1.draw(ctx);
 
@@ -189,14 +177,23 @@ function animationLoop() {
 
             joueur.move();
             //joueur.followMouse()
+
             joueur.testeCollisionAvecBordsDuCanvas(canvas.width, canvas.height);
-            detecteCollisionJoueurAvecObstacles();
+            detecteCollisionJoueurAvecObstaclesEtPieces();
             detecteCollisionJoueurAvecSortie();
             break;
     }
 
     // 4 - On rappelle la fonction d'animation
     requestAnimationFrame(animationLoop);
+}
+
+function afficheScore(ctx) {
+    ctx.save();
+    ctx.fillStyle = 'black';
+    ctx.font = "30px Arial";
+    ctx.fillText("Score: " + score, 10, 30);
+    ctx.restore();
 }
 
 function afficheEcranDebutNiveau(ctx) {
@@ -292,14 +289,24 @@ function exempleDessin() {
 
 
 
-function detecteCollisionJoueurAvecObstacles() {
+function detecteCollisionJoueurAvecObstaclesEtPieces() {
     let collisionExist = false;
     // On va tester si le joueur est en collision avec un des obstacles
-    tableauDesObjetsGraphiques.forEach(o => {
+    tableauDesObjetsGraphiques.forEach((o, index) => {
         if (o instanceof Obstacle) {
             if (rectsOverlap(joueur.x, joueur.y, joueur.l, joueur.h, o.x, o.y, o.l, o.h)) {
                 collisionExist = true;
                 assets.plop.play();
+            }
+        } else if(o instanceof Coin) {
+            if (rectsOverlap(joueur.x, joueur.y, joueur.l, joueur.h, o.x, o.y, o.l, o.h)) {
+                // collision avec une pièce
+                score += o.nbPoints;
+                assets.victory.play();
+                // splice supprime un élément d'un tableau
+                // 1er paramètre : l'index de l'élément à supprimer, 
+                // 2ème paramètre : le nombre d'éléments à supprimer
+                tableauDesObjetsGraphiques.splice(index, 1);
             }
         }
     });
